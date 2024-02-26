@@ -24,7 +24,7 @@ def main():
     print("2. Memory Script")
     print("3. CPU/Memory paralel")
     print 
-    choice = input("Enter your choice (1 or 2): ")
+    choice = input("Enter your choice: ")
 
     if choice == '1':
         delay_cpu = int(input("Enter delay(s) for CPU script: "))
@@ -39,7 +39,7 @@ def main():
         amount_cpu_mem = int(input("Enter amount for CPU/Memory script: "))
         run_cpu_mem_script(delay_cpu_mem, amount_cpu_mem) 
     else:
-        print("Invalid choice. Please enter 1 or 2.")
+        print("Invalid choice. Please enter 1, 2 or 3.")
 
 if __name__ == "__main__":
     main()

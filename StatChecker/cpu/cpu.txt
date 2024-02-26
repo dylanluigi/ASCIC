@@ -1,0 +1,2 @@
+top - 15:15:42 up  1:43,  2 users,  load average: 1.23, 0.90, 0.78 %Cpu(s): 10.9 us,  3.1 sy,  0.0 ni, 85.2 id,  0.0 wa,  0.8 hi,  0.0 si,  0.0 st
+top - 15:15:43 up  1:43,  2 users,  load average: 1.21, 0.91, 0.78 %Cpu(s):  3.2 us,  0.7 sy,  0.0 ni, 95.8 id,  0.1 wa,  0.1 hi,  0.0 si,  0.0 st

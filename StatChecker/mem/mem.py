@@ -3,42 +3,45 @@ import csv
 import os
 import subprocess
 
-# Linux command to get format:
-# top -b -d 2 -n 4 | grep -E 'top -|MiB Mem' | awk '/top -/ { time=$0 } /MiB Mem/ { print time, $0 }'  > Desktop/mem.txt  
-
-
-def extract_info(line):
-    regex = re.compile(r"top - (\d+:\d+:\d+) .*?MiB\sMem\s:\s+(\d+\.\d+)\stotal,\s+(\d+\.\d+) free,\s+(\d+\.\d+) used,\s+(\d+\.\d+) buff/cache")
+def extract_info_vmstat(line):
+    # Adjust the regex to match the new line format with the timestamp prepended
+    regex = re.compile(r"(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+\d+\s+\d+\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+).*")
     match = re.search(regex, line)
     if match:
-        timestamp, total, free, used, buff_cache = match.groups()
-        return timestamp, total, free, used, buff_cache
+        timestamp, swpd, free, buff, cache = match.groups()
+        return timestamp, swpd, free, buff, cache
     else:
         return None
 
-def mem_txt_to_csv(input_file, output_file, delay, amount):
+def vmstat_to_csv(input_file, output_file, delay, amount):
 
     current_directory = os.getcwd()
-    subdirectory = "StatChecker/mem/"
+    subdirectory = "mem/"
     output_file_path = os.path.join(current_directory, subdirectory, output_file)
     input_file_path = os.path.join(current_directory, subdirectory, input_file)
 
     # Create the subdirectory if it doesn't exist
     os.makedirs(os.path.join(current_directory, subdirectory), exist_ok=True)
 
-
-    bash_command_string = "top -b -d "+str(delay)+" -n "+str(amount)+" | grep -E 'top -|MiB Mem' | awk '/top -/ { time=$0 } /MiB Mem/ { print time, $0 }' > StatChecker/mem/mem.txt"
-    subprocess.run(bash_command_string, shell=True)
+    # Adjusted bash command to prepend a timestamp to each vmstat output line
+    # Note: This command uses date and awk to insert the current timestamp before each vmstat output line
+    bash_command_string = f"bash -c 'vmstat {delay} {amount} | while read line; do echo \"$(date +\"%Y-%m-%d %H:%M:%S\") $line\"; done' > {input_file_path}"
+    subprocess.run(bash_command_string, shell=True, check=True)
 
     with open(input_file_path, 'r') as infile, open(output_file_path, 'w', newline='') as outfile:
         csv_writer = csv.writer(outfile)
-        csv_writer.writerow(['TIME', 'TOTAL', 'FREE', 'USED', 'BUFF_CACHE'])
+        # Update the header to include TIMESTAMP
+        csv_writer.writerow(['TIMESTAMP', 'SWPD', 'FREE', 'BUFF', 'CACHE'])
+
+        # Skip the initial lines that don't contain the vmstat data we're interested in
+        for _ in range(2):  # You may need to adjust this based on your output
+            next(infile)
 
         for line in infile:
-            info = extract_info(line)
+            info = extract_info_vmstat(line)
             if info:
                 csv_writer.writerow(info)
             else:
                 print(f"Skipping line: {line.strip()}")
 
-mem_txt_to_csv('mem.txt', 'mem.csv', 1, 2)
+vmstat_to_csv('mem.txt', 'mem.csv', 1, 2)
